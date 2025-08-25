@@ -41,8 +41,28 @@ class IpOtApp(QWidget):
         layout.addWidget(create_box)
     
     def create_block(self):
-        # IP bloğu oluşturma fonksiyonu
-        print("IP Bloğu Oluşturuldu")
+        if self.input_label.currentText() == "CIDR":
+            cidr_text = self.input_cidr.text()
+            try:
+                net = ipaddress.ip_network(cidr_text, strict=False)
+                ip_list = [str(ip) for ip in net.hosts()]
+                print("CIDR IP Listesi:")
+                for ip in ip_list:
+                    print(ip)
+            except Exception as e:
+                print(f"Hata: {e}")
+        else:
+            start_ip = self.input_range_start.text()
+            end_ip = self.input_range_end.text()
+            try:
+                start = ipaddress.IPv4Address(start_ip)
+                end = ipaddress.IPv4Address(end_ip)
+                ip_list = [str(ipaddress.IPv4Address(ip)) for ip in range(int(start), int(end)+1)]
+                print("Range IP Listesi:")
+                for ip in ip_list:
+                    print(ip)
+            except Exception as e:
+                print(f"Hata: {e}")
 
 
-    
+
