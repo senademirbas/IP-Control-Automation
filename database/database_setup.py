@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS Customer(
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS IP_Blocks(
                block_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-               user_ID INTEGER NOT NULL
+               user_ID INTEGER NOT NULL,
                block_name TEXT NOT NULL,
                range_start TEXT,
                range_end TEXT,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS IP_Table (
                 end_date DATE,
                 FOREIGN KEY (block_ID) REFERENCES IP_Blocks(block_ID),
                 FOREIGN KEY (edited_by_user_ID) REFERENCES User(user_ID),
-                FOREIGN KEY (customer_ID) REFERENCES Customers(customer_ID)
+                FOREIGN KEY (customer_ID) REFERENCES Customer(customer_ID)
 )
 """)
 
