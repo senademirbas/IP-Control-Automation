@@ -20,3 +20,41 @@ __pycache__/
 *.tmp
 .DS_Store
 Thumbs.db
+
+# Python cache ve temporary dosyalar
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+venv/
+.env/
+env/
+.venv/
+
+# SQLite database dosyaları
+*.db
+*.sqlite3
+
+# IDE / Editor ayar dosyaları
+.vscode/
+.idea/
+
+# PyInstaller çıktıları
+build/
+dist/
+*.spec
+
+# Logs
+*.log
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
+
+# PyQt6 UI dosyaları (eğer Qt Designer .ui dosyalarını py'ye çeviriyorsan py çıkışı ignore edebilirsin)
+*.qrc
+*.qmlc
+*.jsc
