@@ -1,0 +1,22 @@
+# Sanal ortam klasörü
+venv/
+ENV/
+env/
+
+# SQLite veritabanı dosyaları
+*.db
+*.sqlite3
+
+# PyQt ve Python derleme dosyaları
+__pycache__/
+*.pyc
+*.pyo
+
+# VSCode ayarları
+.vscode/
+
+# Geçici dosyalar
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
