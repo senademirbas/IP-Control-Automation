@@ -13,6 +13,9 @@ cursor = conn.cursor()
 cursor.execute("""
     INSERT INTO Customer (customer_name,customer_surname) VALUES (?, ?)
 """, ("musteri1", "2"))
+cursor.execute("""
+    INSERT INTO User (username, password,name,surname, active_session) VALUES (?, ?, ?, ?, ?)
+""", ("kullanıcı1", "123456","Kullanıcı","Bir",1))
 
 # Değişiklikleri kaydet ve bağlantıyı kapat
 conn.commit()
