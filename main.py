@@ -13,8 +13,8 @@ cursor.execute("DELETE FROM user")
 
 # Yeni bir kayıt ekle
 cursor.execute("""
-    INSERT INTO User (username, password,name,surname) VALUES (?, ?, ?, ?)
-""", ("kullanıcı1", "123456","Kullanıcı","Bir"))
+    INSERT INTO User (username, password,name,surname, active_session) VALUES (?, ?, ?, ?, ?)
+""", ("kullanıcı1", "123456","Kullanıcı","Bir",1))
 
 # Değişiklikleri kaydet ve bağlantıyı kapat
 conn.commit()
