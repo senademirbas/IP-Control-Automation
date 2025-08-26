@@ -7,7 +7,7 @@ class IpOtoLogin(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("IP Kontrol Otomasyon Sistemi Login")
-        self.setGeometry(100, 100, 400, 200)
+        self.setGeometry(750, 450, 400, 200)
 
         layout = QVBoxLayout(self)
 
@@ -46,12 +46,12 @@ class IpOtoLogin(QWidget):
         conn.close()
         if user:
             print(f"Giriş başarılı: {username}")
-            #ana pencere 
+            #ana pencereye gidiş
             self.main_window = IpOtApp()
             self.main_window.show()
             self.close()
         else:
-            print("Hatalı kullanıcı adı veya şifre!")
+            print("Hatalı kullanıcı adı veya şifre")
 
 
 
