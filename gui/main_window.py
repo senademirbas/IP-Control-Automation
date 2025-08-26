@@ -61,7 +61,6 @@ class IpOtApp(QWidget):
 
         if self.input_label.currentText() == "CIDR":
             cidr_text = self.input_cidr.text()
-            # CIDR zaten var mı kontrolü
             cursor.execute("SELECT COUNT(*) FROM IP_Blocks WHERE CIDR=?", (cidr_text,))
             if cursor.fetchone()[0] > 0:
                 print("Bu CIDR bloğu zaten mevcut!")
@@ -73,14 +72,20 @@ class IpOtApp(QWidget):
                     "INSERT INTO IP_Blocks (user_ID, block_name, range_start, range_end, CIDR, asno, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (self.user_id, block_name, str(net.network_address), str(net.broadcast_address), cidr_text, asno, istanbul_now.strftime("%Y-%m-%d %H:%M:%S"))
                 )
+                block_id = cursor.lastrowid  # Eklenen bloğun ID'si
+                # IP_Table'a IP'leri ekle
+                for ip in net.hosts():
+                    cursor.execute(
+                        "INSERT INTO IP_Table (block_ID, IP_adress, reservation) VALUES (?, ?, ?)",
+                        (block_id, str(ip), "0")
+                    )
                 conn.commit()
-                print("CIDR IP Bloğu veritabanına kaydedildi.")
+                print("CIDR IP Bloğu ve IP'ler veritabanına kaydedildi.")
             except Exception as e:
                 print(f"Hata: {e}")
         else:
             start_ip = self.input_range_start.text()
             end_ip = self.input_range_end.text()
-            # Range zaten var mı kontrolü
             cursor.execute("SELECT COUNT(*) FROM IP_Blocks WHERE range_start=? AND range_end=?", (start_ip, end_ip))
             if cursor.fetchone()[0] > 0:
                 print("Bu IP aralığı zaten mevcut!")
@@ -91,8 +96,18 @@ class IpOtApp(QWidget):
                     "INSERT INTO IP_Blocks (user_ID, block_name, range_start, range_end, CIDR, asno, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (self.user_id, block_name, start_ip, end_ip, None, asno, istanbul_now.strftime("%Y-%m-%d %H:%M:%S"))
                 )
+                block_id = cursor.lastrowid
+                # IP_Table'a IP'leri ekle
+                start = ipaddress.IPv4Address(start_ip)
+                end = ipaddress.IPv4Address(end_ip)
+                for ip_int in range(int(start), int(end)+1):
+                    ip_str = str(ipaddress.IPv4Address(ip_int))
+                    cursor.execute(
+                        "INSERT INTO IP_Table (block_ID, IP_adress, reservation) VALUES (?, ?, ?)",
+                        (block_id, ip_str, "0")
+                    )
                 conn.commit()
-                print("Range IP Bloğu veritabanına kaydedildi.")
+                print("Range IP Bloğu ve IP'ler veritabanına kaydedildi.")
             except Exception as e:
                 print(f"Hata: {e}")
         conn.close()
