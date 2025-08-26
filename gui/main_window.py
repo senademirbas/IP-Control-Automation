@@ -41,14 +41,19 @@ class IpBlockDetailWindow(QWidget):
         self.edit_reservation.addItems(["Boşta", "Rezerve"])
         edit_layout.addWidget(self.edit_reservation, 1, 1)
         
-        edit_layout.addWidget(QLabel("Müşteri ID:"), 2, 0)
-        self.edit_customer_id = QLineEdit()
-        self.edit_customer_id.setPlaceholderText("Müşteri ID girin")
-        edit_layout.addWidget(self.edit_customer_id, 2, 1)
+        edit_layout.addWidget(QLabel("Müşteri Adı:"), 2, 0)
+        self.edit_customer_name = QLineEdit()
+        self.edit_customer_name.setPlaceholderText("Müşteri adı girin")
+        edit_layout.addWidget(self.edit_customer_name, 2, 1)
         
-        edit_layout.addWidget(QLabel("Not:"), 3, 0)
+        edit_layout.addWidget(QLabel("Müşteri Soyadı:"), 3, 0)
+        self.edit_customer_surname = QLineEdit()
+        self.edit_customer_surname.setPlaceholderText("Müşteri soyadı girin")
+        edit_layout.addWidget(self.edit_customer_surname, 3, 1)
+        
+        edit_layout.addWidget(QLabel("Not:"), 4, 0)
         self.edit_note = QLineEdit()
-        edit_layout.addWidget(self.edit_note, 3, 1)
+        edit_layout.addWidget(self.edit_note, 4, 1)
         
         # Butonlar
         button_layout = QHBoxLayout()
@@ -60,7 +65,7 @@ class IpBlockDetailWindow(QWidget):
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_button)
         
-        edit_layout.addLayout(button_layout, 4, 0, 1, 2)
+        edit_layout.addLayout(button_layout, 5, 0, 1, 2)
         layout.addWidget(edit_group)
         
         # Tablo tıklama olayını bağla
@@ -100,14 +105,35 @@ class IpBlockDetailWindow(QWidget):
         ip_id = self.ip_table.item(row, 0).text()
         ip_address = self.ip_table.item(row, 1).text()
         reservation = self.ip_table.item(row, 2).text()
-        customer_id = self.ip_table.item(row, 6).text() if self.ip_table.item(row, 6) else ""
+        customer_name = self.ip_table.item(row, 3).text() if self.ip_table.item(row, 3) else ""
+        customer_surname = self.ip_table.item(row, 4).text() if self.ip_table.item(row, 4) else ""
         note = self.ip_table.item(row, 5).text() if self.ip_table.item(row, 5) else ""
         
         self.current_ip_id = ip_id
         self.edit_ip.setText(ip_address)
         self.edit_reservation.setCurrentText("Rezerve" if reservation == "1" else "Boşta")
-        self.edit_customer_id.setText(customer_id)
+        self.edit_customer_name.setText(customer_name)
+        self.edit_customer_surname.setText(customer_surname)
         self.edit_note.setText(note)
+
+    def get_customer_id(self, customer_name, customer_surname):
+        """Müşteri adı ve soyadına göre customer_ID'yi bulur"""
+        if not customer_name or not customer_surname:
+            return None
+            
+        db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT customer_ID FROM Customer 
+            WHERE customer_name = ? AND customer_surname = ?
+        """, (customer_name, customer_surname))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        return result[0] if result else None
 
     def save_ip_changes(self):
         if not hasattr(self, 'current_ip_id'):
@@ -115,12 +141,38 @@ class IpBlockDetailWindow(QWidget):
             return
         
         try:
+            customer_name = self.edit_customer_name.text().strip()
+            customer_surname = self.edit_customer_surname.text().strip()
+            
+            # Müşteri bilgileri girilmişse kontrol et
+            customer_id = None
+            if customer_name and customer_surname:
+                customer_id = self.get_customer_id(customer_name, customer_surname)
+                if customer_id is None:
+                    # Müşteri bulunamadı, yeni müşteri oluştur
+                    reply = QMessageBox.question(self, "Müşteri Bulunamadı", 
+                                               f"{customer_name} {customer_surname} isimli müşteri bulunamadı. Yeni müşteri olarak eklemek ister misiniz?",
+                                               QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                    if reply == QMessageBox.StandardButton.Yes:
+                        db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
+                        conn = sqlite3.connect(db_path)
+                        cursor = conn.cursor()
+                        cursor.execute("""
+                            INSERT INTO Customer (customer_name, customer_surname)
+                            VALUES (?, ?)
+                        """, (customer_name, customer_surname))
+                        customer_id = cursor.lastrowid
+                        conn.commit()
+                        conn.close()
+                        QMessageBox.information(self, "Başarılı", "Yeni müşteri eklendi.")
+                    else:
+                        return
+            
             db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
             reservation_value = "1" if self.edit_reservation.currentText() == "Rezerve" else "0"
-            customer_id = self.edit_customer_id.text() if self.edit_customer_id.text() else None
             
             cursor.execute("""
                 UPDATE IP_Table 
@@ -149,7 +201,8 @@ class IpBlockDetailWindow(QWidget):
     def clear_edit_fields(self):
         self.edit_ip.clear()
         self.edit_reservation.setCurrentIndex(0)
-        self.edit_customer_id.clear()
+        self.edit_customer_name.clear()
+        self.edit_customer_surname.clear()
         self.edit_note.clear()
         if hasattr(self, 'current_ip_id'):
             delattr(self, 'current_ip_id')
