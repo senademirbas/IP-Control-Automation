@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS IP_Table (
                 block_ID INTEGER,
                 edited_by_user_ID INTEGER,
                 customer_ID INTEGER,
+                customer_name TEXT,
+                customer_surname TEXT,
                 IP_adress TEXT NOT NULL UNIQUE,
                 reservation TEXT,
                 note TEXT,
@@ -62,7 +64,9 @@ CREATE TABLE IF NOT EXISTS IP_Table (
                 end_date DATE,
                 FOREIGN KEY (block_ID) REFERENCES IP_Blocks(block_ID),
                 FOREIGN KEY (edited_by_user_ID) REFERENCES User(user_ID),
-                FOREIGN KEY (customer_ID) REFERENCES Customer(customer_ID)
+                FOREIGN KEY (customer_ID) REFERENCES Customer(customer_ID),
+                FOREIGN KEY (customer_name) REFERENCES Customer(customer_name),
+                FOREIGN KEY (customer_surname) REFERENCES Customer(customer_surname)
 )
 """)
 

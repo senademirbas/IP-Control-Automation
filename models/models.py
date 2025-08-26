@@ -82,7 +82,6 @@ class IPTable(Base):
     block_ID = Column(Integer, ForeignKey("IP_Blocks.block_ID", ondelete="CASCADE"))
     edited_by_user_ID = Column(Integer, ForeignKey("User.user_ID"))
     customer_ID = Column(Integer, ForeignKey("Customer.customer_ID"))
-
     IP_adress = Column(Text, nullable=False, unique=True)
     reservation = Column(Text)
     note = Column(Text)
