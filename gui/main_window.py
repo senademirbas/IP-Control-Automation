@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QGroupBox, QComboBox, QGridLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QGroupBox, QComboBox, QGridLayout, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox
 from PyQt6.QtGui import QIcon
 import ipaddress
 import sqlite3
@@ -9,12 +9,38 @@ import pytz
 
 istanbul_now = datetime.now(pytz.timezone("Europe/Istanbul"))
 
+class IpBlockDetailWindow(QWidget):
+    def __init__(self, block_id):
+        super().__init__()
+        self.setWindowTitle("IP Blok Detayı")
+        self.setGeometry(200, 200, 600, 400)
+        layout = QVBoxLayout(self)
+        self.ip_table = QTableWidget()
+        layout.addWidget(QLabel(f"Blok ID: {block_id} IP Listesi"))
+        layout.addWidget(self.ip_table)
+        self.load_ips(block_id)
+
+    def load_ips(self, block_id):
+        db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT IP_ID, IP_adress, reservation, note FROM IP_Table WHERE block_ID=?", (block_id,))
+        ips = cursor.fetchall()
+        conn.close()
+        self.ip_table.setRowCount(len(ips))
+        self.ip_table.setColumnCount(4)
+        self.ip_table.setHorizontalHeaderLabels(["IP_ID", "IP Adresi", "Rezervasyon", "Not"])
+        for row, ip in enumerate(ips):
+            for col, value in enumerate(ip):
+                self.ip_table.setItem(row, col, QTableWidgetItem(str(value)))
+        self.ip_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
 class IpOtApp(QWidget):
     def __init__(self, user_id):
         super().__init__()
         self.user_id = user_id
         self.setWindowTitle("IP Kontrol Otomasyon Sistemi")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 700)
 
         layout = QVBoxLayout(self)
 
@@ -50,6 +76,37 @@ class IpOtApp(QWidget):
         create_layout.addWidget(self.input_range_end, 5, 1)
         create_layout.addWidget(self.create_button, 6, 1)
         layout.addWidget(create_box)
+
+        # Blokları tablo şeklinde göster
+        self.block_table = QTableWidget()
+        self.block_table.setColumnCount(7)
+        self.block_table.setHorizontalHeaderLabels(["ID", "Başlık", "CIDR", "Range Start", "Range End", "ASNO", "Tarih"])
+        self.block_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.block_table.cellDoubleClicked.connect(self.open_block_detail)
+        layout.addWidget(QLabel("Oluşturulan/Kayıtlı IP Blokları:"))
+        layout.addWidget(self.block_table)
+
+        self.setLayout(layout)
+        self.load_blocks()
+
+    def load_blocks(self):
+        db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT block_ID, block_name, CIDR, range_start, range_end, asno, timestamp FROM IP_Blocks")
+        blocks = cursor.fetchall()
+        conn.close()
+        self.block_table.setRowCount(len(blocks))
+        for row, block in enumerate(blocks):
+            for col, value in enumerate(block):
+                self.block_table.setItem(row, col, QTableWidgetItem(str(value)))
+
+    def open_block_detail(self, row, col):
+        block_id_item = self.block_table.item(row, 0)
+        if block_id_item:
+            block_id = int(block_id_item.text())
+            self.detail_window = IpBlockDetailWindow(block_id)
+            self.detail_window.show()
 
     def create_block(self):
         db_path = os.path.join(os.path.dirname(__file__), "..", "database", "ip_data.db")
@@ -111,6 +168,8 @@ class IpOtApp(QWidget):
             except Exception as e:
                 print(f"Hata: {e}")
         conn.close()
+        # Her başarılı eklemeden sonra blokları güncelle:
+        self.load_blocks()
 
 
 
