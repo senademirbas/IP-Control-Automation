@@ -32,7 +32,7 @@ Amaç, **Python (PyQt6)** ile GUI (arayüz) ve **SQLite** ile veritabanı kullan
    cd ip-manager
 2. Gerekli bağımlılıkları yükleyin:
    pip install -r requirements.txt
-3. Uygulamayı başlatın:
+3. Uygulamayı başlatın: hazır kullanıcı örneği olan "kullanıcı1" ve şifresi "123456" ile giriş yapabilirsiniz.
    python main.py
 
 
