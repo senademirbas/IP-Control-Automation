@@ -46,8 +46,8 @@ class IpOtoLogin(QWidget):
         conn.close()
         if user:
             print(f"Giriş başarılı: {username}")
-            #ana pencereye gidiş
-            self.main_window = IpOtApp()
+            user_id = user[0]  # user_ID sütunu
+            self.main_window = IpOtApp(user_id)
             self.main_window.show()
             self.close()
         else:
