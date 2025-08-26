@@ -36,19 +36,18 @@ CREATE TABLE IF NOT EXISTS Customer(
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS IP_Blocks(
-               block_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-               user_ID INTEGER NOT NULL,
-               block_name TEXT NOT NULL,
-               range_start TEXT,
-               range_end TEXT,
-               CIDR TEXT,
-               asno TEXT,
-               timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-               status TEXT CHECK(status IN('active','inactive')) NOT NULL DEFAULT 'active',
-               FOREIGN KEY (user_ID) REFERENCES User(user_ID)
-               )
-"""
+    block_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_ID INTEGER NOT NULL,
+    block_name TEXT NOT NULL,
+    range_start TEXT,
+    range_end TEXT,
+    CIDR TEXT UNIQUE, 
+    asno TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT CHECK(status IN('active','inactive')) NOT NULL DEFAULT 'active',
+    FOREIGN KEY (user_ID) REFERENCES User(user_ID)
 )
+""")
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS IP_Table (
