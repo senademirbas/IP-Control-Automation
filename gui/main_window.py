@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QLineEdit, QTextEdit , QGroupBox , QComboBox , QGridLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QLineEdit, QTextEdit , QGroupBox , QComboBox , QGridLayout, QStackedWidget,QHBoxLayout
 from PyQt6.QtGui import QIcon
 import ipaddress
 
@@ -24,6 +24,8 @@ class IpOtApp(QWidget):
         self.input_asno = QLineEdit()
         self.input_asno.setPlaceholderText("AS No (örn: AS12345)")
         self.input_label.addItems(["CIDR", "Başlangıç ve Bitiş"])
+        #cidr veya aralık seçimi 
+        self.input_label.currentTextChanged.connect(self._toggle_mode_fields)
         self.input_cidr = QLineEdit()
         self.input_cidr.setPlaceholderText("CIDR (örn: 192.168.1.0/24)")
         self.input_range_start = QLineEdit()
@@ -47,6 +49,17 @@ class IpOtApp(QWidget):
         create_layout.addWidget(self.input_range_end, 5, 1)
         create_layout.addWidget(self.create_button, 6, 1)
         layout.addWidget(create_box)
+        #seçili moda alan aç kapa
+        self._toggle_mode_fields(self.input_label.currentText())
+
+    def _toggle_mode_fields(self, mode: str):
+        is_cidr = (mode == "CIDR")
+        #CIDR açık
+        self.input_cidr.setEnabled(is_cidr)
+        #baş,bit açık
+        self.input_range_start.setEnabled(not is_cidr)
+        self.input_range_end.setEnabled(not is_cidr)
+
     
     def create_block(self):
         if self.input_label.currentText() == "CIDR":
@@ -72,5 +85,32 @@ class IpOtApp(QWidget):
             except Exception as e:
                 print(f"Hata: {e}")
 
+        nav_box = QGroupBox("Pencereler")
+        nav_layout = QHBoxLayout(nav_box)
+        # Şimdilik tek ana pencere: IP Modülü
+        self.btn_ip_modulu = QPushButton("IP Modülü")
+        # İleride buraya başka ana pencereler eklersin (örn. Kullanıcılar, Raporlar vs.)
+        nav_layout.addWidget(self.btn_ip_modulu)
 
+        layout.addWidget(nav_box)
 
+        self.main_pages = QStackedWidget()
+
+        self.page_ip_module = IPpage()
+        self.main_pages.addWidget(self.page_ip_module)  # index 0: IP Modülü
+
+        layout.addWidget(self.main_pages, 1)
+
+        # Ana buton -> ana sayfa bağlantıları
+        self.btn_ip_modulu.clicked.connect(lambda: self.main_pages.setCurrentIndex(0))
+
+        # Başlangıçta alanları doğru moda göre ayarla
+        self._toggle_mode_fields(self.input_label.currentText())
+
+class IPpage(QWidget): 
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        self.label = QLabel("IP Yönetim ")
+        layout.addWidget(self.label)
+        self.setLayout(layout)
